@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+  
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+    command: npm run dev
+
+  redoc:
+    image: redocly/redoc
+    ports:
+      - "8080:8080"
+    environment:
+      SPEC_URL: /swagger.json
+    volumes:
+      - ./src/swagger.json:/usr/share/nginx/html/swagger.json
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:

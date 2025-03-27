@@ -1,11 +1,16 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import logger from '~/utils/logger';
 import { HttpError } from 'http-errors';
 import { ZodError } from 'zod';
 import { ValidationError as SequelizeError } from 'sequelize';
+import LoggerService from '~/services/logger.service'; // Import LoggerService
+import { container } from 'tsyringe';
+
+const loggerService = container.resolve(LoggerService);
 
 export const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack);
+  if (res.statusCode >= 500) {
+    loggerService.error(err); // Use loggerService.error
+  }
 
   if (err instanceof HttpError) {
     res.status(err.statusCode).json({ message: err.message });

@@ -1,8 +1,8 @@
 import express from 'express';
 import { container } from 'tsyringe';
-import TodoController from '../controllers/todo.controller';
+import TodoController from '../controllers/todo/todo.controller';
 import { validateBody, validateQuery, validateParams } from '~/middleware/validation.middleware';
-import { createTodoSchema } from '~/controllers/todo.dto';
+import { createTodoSchema } from '~/controllers/todo/dto/todo.dto';
 import { authenticateJWT } from '~/middleware/auth.middleware';
 
 const router = express.Router();

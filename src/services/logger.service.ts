@@ -18,8 +18,24 @@ class LoggerService {
     });
   }
 
-  getLogger(): Logger {
-    return this.logger;
+  log(msg: string, ...args: any[]) {
+    this.logger.info(msg, ...args);
+  }
+
+  error(obj: any, msg?: string, ...args: any[]) {
+    this.logger.error(obj, msg, ...args);
+  }
+
+  warn(msg: string, ...args: any[]) {
+    this.logger.warn(msg, ...args);
+  }
+
+  debug(msg: string, ...args: any[]) {
+    this.logger.debug(msg, ...args);
+  }
+
+  info(msg: string, ...args: any[]) {
+    this.logger.info(msg, ...args);
   }
 }
 

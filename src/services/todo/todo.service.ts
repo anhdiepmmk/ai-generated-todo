@@ -1,5 +1,5 @@
-import TodoRepository from '../repositories/todo.repository';
-import Todo from '../models/todo.model';
+import TodoRepository from '../../repositories/todo.repository';
+import Todo from '../../models/todo.model';
 import { injectable, inject } from 'tsyringe';
 
 @injectable()

@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import createHttpError from "http-errors";
-import TodoService from "../services/todo.service";
+import Todo from "../../models/todo.model";
+import TodoService from "../../services/todo/todo.service";
 import { injectable, inject } from "tsyringe";
-import { getPaginationResult } from "../utils/pagination"; // Import pagination utility
+import { PaginationResult } from "../../utils/pagination"; // Import pagination utility
 
 @injectable()
 class TodoController {
@@ -21,7 +22,16 @@ class TodoController {
       offset
     );
 
-    res.json(getPaginationResult(todos, page, limit, count)); // Use pagination utility
+    const paginationResult: PaginationResult<Todo> = {
+      todos,
+      pagination: {
+        page,
+        limit,
+        totalItems: count,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
+    res.json(paginationResult); // Use pagination utility
   }
 
   /**

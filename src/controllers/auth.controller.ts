@@ -1,12 +1,10 @@
 import { Request, Response, RequestHandler } from 'express';
 // import logger from '~/utils/logger'; // Deprecated
 import createHttpError from 'http-errors';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/user.model';
-import { JWT_SECRET } from '~/config/config';
 import { injectable, inject } from 'tsyringe'; // Import inject
 import LoggerService from '../services/logger.service'; // Import LoggerService
+import AuthService from '../services/auth/auth.service';
+import { registerSchema, loginSchema } from './auth.dto'; // Import DTO schemas
 
 /**
  * @swagger
@@ -17,9 +15,14 @@ import LoggerService from '../services/logger.service'; // Import LoggerService
 @injectable()
 class AuthController {
   private loggerService: LoggerService;
+  private authService: AuthService; // Inject AuthService
 
-  constructor(@inject(LoggerService) loggerService: LoggerService) {
+  constructor(
+    @inject(LoggerService) loggerService: LoggerService,
+    @inject(AuthService) authService: AuthService // Inject AuthService
+  ) {
     this.loggerService = loggerService;
+    this.authService = authService; // Initialize AuthService
   }
 
   /**
@@ -56,26 +59,14 @@ class AuthController {
    *         description: Failed to register user
    */
   register: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, password, firstName, lastName } = req.body; // Added firstName, lastName
-      const passwordHash = await bcrypt.hash(password, 10); // Hash the password
-
-      const existingUser = await User.findOne({ where: { email } }); // Find by email
-      if (existingUser) {
-        throw createHttpError.BadRequest('Email already exists'); // Changed error message
-      }
-
-      const user = await User.create({ email, passwordHash, firstName, lastName }); // Use passwordHash and added names
-
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, {
-        expiresIn: '1h',
-      });
-
-      res.status(201).json({ message: 'User created successfully', token });
-    } catch (error) {
-      this.loggerService.getLogger().error(error);
-      throw createHttpError.InternalServerError('Failed to register user');
-    }
+    const dto = registerSchema.parse(req.body); // Parse request body with DTO
+    const result = await this.authService.register(
+      dto.email,
+      dto.password,
+      dto.firstName,
+      dto.lastName
+    ); // Call AuthService with DTO
+    res.status(201).json(result); // Send service result to response
   }
 
   /**
@@ -91,7 +82,7 @@ class AuthController {
    *           schema:
    *             type: object
    *             properties:
-   *               email: 
+   *               email:
    *                 type: string
    *                 description: The email of the user
    *               password:
@@ -106,28 +97,9 @@ class AuthController {
    *         description: Failed to login
    */
   login: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, password } = req.body; // Changed to email
-
-      const user = await User.findOne({ where: { email } }); // Find by email
-      if (!user) {
-        throw createHttpError.BadRequest('Invalid credentials');
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.passwordHash); // Compare with passwordHash
-      if (!isPasswordValid) {
-        throw createHttpError.BadRequest('Invalid credentials');
-      }
-
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, {
-        expiresIn: '1h',
-      });
-
-      res.json({ message: 'Logged in successfully', token });
-    } catch (error) {
-      this.loggerService.getLogger().error(error);
-      throw createHttpError.InternalServerError('Failed to login');
-    }
+    const dto = loginSchema.parse(req.body); // Parse request body with DTO
+    const result = await this.authService.login(dto.email, dto.password); // Call AuthService with DTO
+    res.json(result); // Send service result to response
   }
 
 }

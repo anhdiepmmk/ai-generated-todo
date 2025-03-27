@@ -8,21 +8,4 @@ interface PaginationResult<T> {
   };
 }
 
-function getPaginationResult<T>(
-  todos: T[],
-  page: number,
-  limit: number,
-  count: number
-): PaginationResult<T> {
-  return {
-    todos,
-    pagination: {
-      page,
-      limit,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-    },
-  };
-}
-
-export { getPaginationResult, PaginationResult };
+export { PaginationResult };

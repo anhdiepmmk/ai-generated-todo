@@ -28,18 +28,18 @@ describe('TodoRepository', () => {
 
   beforeEach(() => {
     todoRepository = new TodoRepository();
-    jest.clearAllMocks();
   });
 
   describe('search', () => {
     it('should call Todo.findAndCountAll with correct parameters', async () => {
-      const userId = 1;
-      const limit = 10;
-      const offset = 0;
+      const userId: number = 1;
+      const limit: number = 10;
+      const offset: number = 0;
+      const findAndCountAllMock = jest.spyOn(mockedTodo, 'findAndCountAll');
 
       await todoRepository.search(userId, limit, offset);
 
-      expect(mockedTodo.findAndCountAll).toHaveBeenCalledWith({
+      expect(findAndCountAllMock).toHaveBeenCalledWith({
         where: { userId },
         limit,
         offset,
@@ -49,12 +49,13 @@ describe('TodoRepository', () => {
 
   describe('getByUserIdAndId', () => {
     it('should call Todo.findOne with correct parameters', async () => {
-      const id = 1;
+      const id: number = 1;
       const userId = 1;
+      const findOneMock = jest.spyOn(mockedTodo, 'findOne');
 
       await todoRepository.getByUserIdAndId(id, userId);
 
-      expect(mockedTodo.findOne).toHaveBeenCalledWith({
+      expect(findOneMock).toHaveBeenCalledWith({
         where: { id, userId },
       });
     });
@@ -62,12 +63,13 @@ describe('TodoRepository', () => {
 
   describe('create', () => {
     it('should call Todo.create with correct parameters', async () => {
-      const title = 'Test Todo';
+      const title: string = 'Test Todo';
       const userId = 1;
+      const createMock = jest.spyOn(mockedTodo, 'create');
 
       await todoRepository.create(title, userId);
 
-      expect(mockedTodo.create).toHaveBeenCalledWith({
+      expect(createMock).toHaveBeenCalledWith({
         title,
         completed: false,
         userId,
@@ -78,35 +80,32 @@ describe('TodoRepository', () => {
   describe('update', () => {
     it('should update and save todo if todo exists', async () => {
       const id = 1;
-      const completed = true;
+      const completed: boolean = true;
       const userId = 1;
-      const mockTodoInstance = {
+      const mockTodoInstance: any = {
         id: 1,
         completed: false,
         save: jest.fn(),
-        _attributes: {},
-        dataValues: {},
-        _creationAttributes: {},
-        isNewRecord: false,
       };
-      mockedTodo.findOne.mockResolvedValue(mockTodoInstance as any);
+      const findOneMock = jest.spyOn(mockedTodo, 'findOne').mockResolvedValue(mockTodoInstance as any);
+      const saveMock = jest.spyOn(mockTodoInstance, 'save');
 
       await todoRepository.update(id, completed, userId);
 
-      expect(mockedTodo.findOne).toHaveBeenCalledWith({
+      expect(findOneMock).toHaveBeenCalledWith({
         where: { id, userId },
       });
       expect(mockTodoInstance.completed).toBe(completed);
-      expect(mockTodoInstance.save).toHaveBeenCalled();
+      expect(saveMock).toHaveBeenCalled();
     });
 
     it('should return null if todo does not exist', async () => {
       const id = 1;
       const completed = true;
       const userId = 1;
-      mockedTodo.findOne.mockResolvedValue(null);
+      const findOneMock = jest.spyOn(mockedTodo, 'findOne').mockResolvedValue(null);
 
-      const result = await todoRepository.update(id, completed, userId);
+      const result: Todo | null = await todoRepository.update(id, completed, userId);
 
       expect(result).toBeNull();
     });
@@ -116,28 +115,25 @@ describe('TodoRepository', () => {
     it('should delete todo if todo exists', async () => {
       const id = 1;
       const userId = 1;
-      const mockTodoInstance = {
+      const mockTodoInstance: any = {
         destroy: jest.fn().mockResolvedValue(true),
-        _attributes: {},
-        dataValues: {},
-        _creationAttributes: {},
-        isNewRecord: false,
       };
-      mockedTodo.findOne.mockResolvedValue(mockTodoInstance as any);
+      const findOneMock = jest.spyOn(mockedTodo, 'findOne').mockResolvedValue(mockTodoInstance as any);
+      const destroyMock = jest.spyOn(mockTodoInstance, 'destroy');
 
       const result = await todoRepository.delete(id, userId);
 
-      expect(mockedTodo.findOne).toHaveBeenCalledWith({
+      expect(findOneMock).toHaveBeenCalledWith({
         where: { id, userId },
       });
-      expect(mockTodoInstance.destroy).toHaveBeenCalled();
+      expect(destroyMock).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should return false if todo does not exist', async () => {
       const id = 1;
       const userId = 1;
-      mockedTodo.findOne.mockResolvedValue(null);
+      const findOneMock = jest.spyOn(mockedTodo, 'findOne').mockResolvedValue(null);
 
       const result = await todoRepository.delete(id, userId);
 
